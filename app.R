@@ -17,7 +17,7 @@ source("team_analysis.R")
 source("pressure_analysis.R")
 
 # Load Data
-free_throws <- read.csv("free_throws.csv")
+free_throws <- read.csv("data/free_throws.csv")
 # clean the data
 free_throws <- free_throws %>%
   mutate(

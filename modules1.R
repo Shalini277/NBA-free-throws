@@ -35,3 +35,62 @@ mod_summary_ui <- function(id) {
     )
   )
 }
+
+mod_summary_server <- function(id, data) {
+  moduleServer(id, function(input, output, session) {
+    
+    # Update season choices dynamically
+    observe({
+      updatePickerInput(
+        session,
+        "season_input",
+        choices = sort(unique(data()$season)),
+        selected = unique(data()$season)
+      )
+    })
+    
+    # Reactive filtered data
+    filtered_data <- reactive({
+      req(input$season_input, input$playoff_input)
+      data() %>%
+        filter(
+          season %in% input$season_input,
+          playoffs == input$playoff_input
+        )
+    })
+    
+    # Output total shots
+    output$total_shots <- shinydashboard::renderValueBox({
+      valueBox(
+        value = nrow(filtered_data()),
+        subtitle = "Total Free Throws",
+        icon = icon("bullseye"),
+        color = "blue"
+      )
+    })
+    
+    # Output total players
+    output$total_players <- shinydashboard::renderValueBox({
+      valueBox(
+        value = length(unique(filtered_data()$player)),
+        subtitle = "Unique Players",
+        icon = icon("users"),
+        color = "purple"
+      )
+    })
+    
+    # Output success rate
+    output$success_rate <- shinydashboard::renderValueBox({
+      success_rate <- mean(filtered_data()$shot_result == "Made") * 100
+      valueBox(
+        value = sprintf("%.1f%%", success_rate),
+        subtitle = "Overall Success Rate",
+        icon = icon("percentage"),
+        color = "green"
+      )
+    })
+    
+    # Return filtered data for use in other modules
+    return(filtered_data)
+  })
+}
